@@ -1,0 +1,45 @@
+name: CG Forum Notifier
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # every 10 min (UTC). GitHub's scheduler often lags 5-15 min - fine for news.
+  workflow_dispatch:          # adds a "Run workflow" button for manual/test runs
+
+# Never let two runs overlap - a second run reading stale state could double-post
+concurrency:
+  group: cg-forum-notifier
+  cancel-in-progress: false
+
+permissions:
+  contents: write             # needed to commit seen_posts.json back to the repo
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (restores seen_posts.json from the last run)
+        uses: actions/checkout@v4
+
+      - name: Run notifier
+        shell: pwsh           # PowerShell Core is preinstalled on ubuntu-latest
+        env:
+          WEBHOOK_PROMOS: ${{ secrets.WEBHOOK_PROMOS }}
+          WEBHOOK_NEWS:   ${{ secrets.WEBHOOK_NEWS }}
+          ROLE_CHALLENGE:  ${{ secrets.ROLE_CHALLENGE }}
+          ROLE_ANNOUNCE:   ${{ secrets.ROLE_ANNOUNCE }}
+        run: ./cg-forum-notifier.ps1
+
+      - name: Commit state
+        run: |
+          git config user.name  "cg-forum-notifier"
+          git config user.email "actions@github.com"
+          git add seen_posts.json
+          # Only commit if the file actually changed - keeps history readable
+          if git diff --staged --quiet; then
+            echo "No new posts - nothing to commit"
+          else
+            git commit -m "state: $(date -u '+%Y-%m-%d %H:%M') UTC"
+            # Rebase in case an earlier run committed while this one was working
+            git pull --rebase --autostash
+            git push
+          fi

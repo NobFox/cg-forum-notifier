@@ -1,0 +1,5 @@
+# Never commit real webhook URLs
+local-secrets.ps1
+
+# Runtime log (Actions logs live in the Actions tab instead)
+notifier.log
