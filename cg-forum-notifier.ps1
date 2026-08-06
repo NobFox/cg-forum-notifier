@@ -62,7 +62,7 @@ $Feeds = @(
         Url        = 'https://forum.crypto.games/forum/12-special-promotions.xml'
         Webhook    = $WebhookPromos
         PingRoleId = $RoleChallenge
-        Intro      = 'A new event is starting, {role}!'
+        Intro      = 'A special event is coming soon, {role}!'
     }
     @{
         Name       = 'Announcements'
