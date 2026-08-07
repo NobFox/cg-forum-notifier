@@ -5,11 +5,6 @@ on:
     - cron: '7,19,31,43,55 * * * *'   # every 12 min (UTC). GitHub's scheduler often lags 5-15 min - fine for news.
   workflow_dispatch:          # adds a "Run workflow" button for manual/test runs
 
-# Never let two runs overlap - a second run reading stale state could double-post
-concurrency:
-  group: cg-forum-notifier
-  cancel-in-progress: false
-
 permissions:
   contents: write             # needed to commit seen_posts.json back to the repo
 
